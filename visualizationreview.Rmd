@@ -1,0 +1,184 @@
+---
+title: "visualization1"
+author: "Rachel Lee"
+date: "3/17/2020"
+output: html_document
+---
+
+
+```{r}
+
+library(tidyverse)
+library(ggridges)
+
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+      var = c("PRCP", "TMIN", "TMAX"),
+      date_min = "2017-01-01",
+      date_max = "2017-12-31") %>%
+  mutate(
+    #create a new variable called "name"
+        #"NewVarible" = recode("existing variable", "existing values" = "new values" )
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+weather_df
+
+##############
+#SCATTER PLOT#
+##############
+
+
+ggplot(weather_df, aes(x=tmin, y=tmax)) + geom_point()
+#SAME AS
+weather_df %>%
+  ggplot(aes(x=tmin, y=tmax)) + geom_point()
+  
+#save the output of ggplot() to an object
+plot_weather = weather_df %>%
+  ggplot(aes(x=tmin, y=tmax))
+  ##AND THEN modify / print
+plot_weather + geom_point()
+
+
+######################
+#Advanced Scatterplot#
+######################
+
+
+ggplot(weather_df, aes(x = tmin, y=tmax, color=name))+   geom_point(alpha= .5)  + #alpha=transparency
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ name) #separate grids for each "name"
+
+
+
+ggplot(weather_df, aes(x = date, y = tmax, color = name)) +
+  geom_point(aes(size = prcp), alpha = .5) +
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ name)
+
+
+###################################################
+# Learning Assessment: Write a code chain that starts # with weather_df; focuses only on Central Park, 
+# converts temperatures to Fahrenheit, makes a 
+# scatterplot of min vs. max temperature, and overlays # a linear regression line (using options in 
+# geom_smooth())
+###################################################
+
+
+weather_df %>%
+  
+  #filtering data with only "CentralPark_NY"
+  filter(name == "CentralPark_NY") %>%
+  
+  #adding farenheit variables 
+  mutate( tmax_f = tmax* (9/5) + 32,
+          tmin_f = tmin* (9/5) + 32) %>%
+  
+  #plot tmin_f against tmax_f
+  ggplot( aes (x = tmin_f, y = tmax_f )) +
+  
+  #adding point
+  geom_point( alpha = 0.5 ) +
+  
+  #adding linear regression line 
+  geom_smooth( method = "lm", se = FALSE )
+
+
+#Smooth Curve
+    #same plots
+ggplot(weather_df, aes(x = date, y=tmax, color = name)) + geom_smooth(se = FALSE)
+ggplot(weather_df) + geom_smooth( aes (x=date, y=tmax, color = name), se = FALSE)
+
+#Scatter Plots
+
+  #why are these two different?
+
+ggplot(weather_df) + 
+  geom_point(aes(x=tmax, y=tmin), color = "blue")  #--> Defines the color of the point  (OUTSIDE aes)
+
+ggplot(weather_df) +
+  geom_point(aes(x=tmax, y=tmin, color = "blue")) #--> Creating a new variable called "color" and assigning the value "blue" 
+
+#Histogram
+
+ggplot(weather_df, aes(x = tmax)) +
+  geom_histogram()
+
+ggplot(weather_df, aes(x = tmax, fill = name)) +
+  geom_histogram(position = "dodge" , binwidth = 2)
+
+#Density Curve
+ggplot(weather_df, aes(x = tmax)) + 
+  geom_density(alpha = .4, adjust = .5, color = "blue")
+
+ 
+ ggplot(weather_df, aes(x = tmax, fill = name)) + 
+  geom_density(alpha = .4, adjust = .5, color = "blue")
+ 
+ #boxplots
+ ggplot(weather_df, aes(x = name, y = tmax)) +
+   geom_boxplot()
+ 
+ #violin plots
+ ggplot(weather_df, aes(x = name, y = tmax)) + 
+   geom_violin(aes(fill = name), color = "blue", alpha = .5) + stat_summary(fun.y = median, geom = "point", color = "blue", size = 4 )
+ 
+ #ridge plots
+ ggplot(weather_df, aes(x = tmax, y = name)) + geom_density_ridges(scale = .85)
+ 
+ 
+#learning assessment
+ 
+ #histogram
+ ggplot(weather_df, aes( x = prcp, fill = name)) +
+   geom_histogram(position = "dodge", binwidth = 80)
+
+ #density curve: these two are the same thing
+ ggplot(weather_df, aes( x = prcp, fill = name)) + 
+  geom_density(alpha = .4, adjust = 40, color = "blue")
+ ggplot(weather_df, aes( x = prcp)) + 
+  geom_density(aes(fill = name), alpha = .5, adjust = 40)
+ 
+ #ridge plot 
+ ggplot(weather_df, aes( x = prcp, y = name)) +
+   geom_density_ridges(scale = .85)
+ 
+ #boxplot
+ ggplot(weather_df, aes(x = name, y = prcp)) +           geom_boxplot()
+ 
+ weather_df %>% 
+  filter(prcp > 0) %>% 
+  ggplot(aes(x = prcp, y = name)) + 
+  geom_density_ridges(scale = .85)
+ 
+ 
+############################
+#Saving and embedding plots#
+############################
+ 
+weather_plot = ggplot(weather_df, aes(x = tmin, y = tmax)) + 
+   geom_point(aes(color = name), alpha = 0.5)
+ 
+
+
+ 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
